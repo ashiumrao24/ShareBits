@@ -9,6 +9,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             top: targetPosition,
             behavior: 'smooth'
       });
+      target.focus({ preventScroll: true });
     });
 });
   

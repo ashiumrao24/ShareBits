@@ -180,7 +180,7 @@ h1 {
 
 .file-name-display {
     margin-top: 0.5rem;
-    color: var(--primary-color);
+    color: var(--accent-text);
     font-size: 0.9rem;
     font-weight: bold;
     text-align: center;
@@ -200,12 +200,12 @@ h1 {
 
 .upload-icon {
     font-size: 3rem;
-    color: var(--primary-color);
+    color: var(--accent-text);
 }
 
 .button {
     width: 100%;
-    background: linear-gradient(135deg, var(--primary-color), #a855f7);
+    background: linear-gradient(135deg, #4f46e5, #7e22ce);
     color: white;
     padding: 1rem 2rem;
     border: none;
@@ -472,7 +472,7 @@ footer a:hover {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background-color: #1c85f5;
+    background-color: #1d4ed8;
     color: white;
     border: none;
     border-radius: 50%;
@@ -502,7 +502,7 @@ dialog::backdrop {
 }
 
 #closeDialogBtn {
-    background-color: #6366f1;
+    background-color: #4f46e5;
     color: white;
     border: none;
     padding: 8px 16px;
@@ -512,4 +512,57 @@ dialog::backdrop {
 
 #closeDialogBtn:hover {
     background-color:  #3c3fef;
+}
+/* Accessibility */
+[data-theme="dark"] { --accent-text: #a5b4fc; }
+[data-theme="light"] { --accent-text: #4338ca; }
+
+.theme-toggle {
+    background: #4f46e5;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.skip-link {
+    position: absolute;
+    top: -3rem;
+    left: 1rem;
+    z-index: 1000;
+    padding: 0.5rem 1rem;
+    background: #4338ca;
+    color: #ffffff;
+}
+
+.skip-link:focus {
+    top: 1rem;
+}
+
+:focus-visible,
+.file-input-wrapper:focus-within {
+    outline: 3px solid var(--accent-text);
+    outline-offset: 2px;
+}
+
+main:focus {
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
 }

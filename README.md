@@ -11,6 +11,9 @@ Share small files from an offline source using only a QR code!
 
 Imagine: You want to share a file with a friend nearby. You want to share from a source that does not have internet access - you just want to beam the file directly to your friend. This system lets you embed your file into a QR code that loads as an actual file download on your friend's device. Try it out here if you're feeling brave! The image that is downloaded by scanning this QR code is not hosted on any server, it only lives inside the QR code.
 
+## Accessibility
+Common screens were checked with axe-core against WCAG 2.1 A and AA rules, in light and dark themes, including the QR result and error dialog, with no automated violations. Automated tools cannot find every issue, and manual screen reader testing has not been done yet.
+
 ## How it works
 ### 1. Generate a QR Code
 Embed a small file into a QR code.

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Generate QR codes to transfer small files securely without uploading to any server.">
-    <title>ØR-Code Generator</title>
+    <title>ShareBits - QR Code File Transfer</title>
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
@@ -20,63 +20,60 @@
 
 <body>
 
-    <button id="scrollBtn" onclick="scrollToTop()">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
 
-    <nav class="navbar">
+    <nav class="navbar" aria-label="Site">
         <div class="navbar-logo">
-            <img src="logo-dark.png" alt="Logo" id="logo">
+            <img src="logo-dark.png" alt="ShareBits logo" id="logo">
         </div>
-
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light theme">🌙</button>
     </nav>
 
-    <button class="theme-toggle" id="themeToggle">🌙</button>
-
-    <canvas class="canvas-bg" id="bgCanvas"></canvas>
-    <div class="container">
+    <canvas class="canvas-bg" id="bgCanvas" aria-hidden="true"></canvas>
+    <main class="container" id="main-content" tabindex="-1">
         <header>
             <h1>QR Code File Transfer</h1>
             <div class="info-text">
                 <p>
-                    Use this tool to generate a QR code to transfer a small file (< 2kb). The file is encoded into the
-                        QR code itself and <b>is not uploaded to any server</b>.
-                        <br><br>The file's data never leaves your computer. (Though this site's server can technically
-                        see the
-                        file's name.
-                        <br><br>To generate one of these QR codes without needing to load this page from the internet,
-                        you can
-                        either:
-                        <ul>
-                            <li>save it to your computer (File -> Save As -> Webpage, Complete)</li>
-                        </ul>
+                    Use this tool to generate a QR code to transfer a small file (under 2 KB). The file is encoded
+                    into the QR code itself and <b>is not uploaded to any server</b>.
                 </p>
+                <p>
+                    The file's data never leaves your computer, though this site's server can technically see the
+                    file's name.
+                </p>
+                <p>To generate one of these QR codes without needing to load this page from the internet:</p>
+                <ul>
+                    <li>Save it to your computer (File, Save As, Webpage, Complete).</li>
+                </ul>
             </div>
         </header>
 
         <div class="card input-section">
             <div class="file-input-wrapper">
-                <input type="file" id="fileInput" accept="*">
-                <div class="upload-icon">📁</div>
-                <p>Drop your file here or click to browse</p>
+                <input type="file" id="fileInput" accept="*" aria-describedby="fileHelp">
+                <div class="upload-icon" aria-hidden="true">📁</div>
+                <p><label for="fileInput">Drop your file here or click to browse</label></p>
+                <p id="fileHelp" class="visually-hidden">Choose a file under 2 KB.</p>
             </div>
-            <p id="fileNameDisplay" class="file-name-display"></p>
+            <p id="fileNameDisplay" class="file-name-display" role="status"></p>
             <button id="encodeButton" class="button">Generate QR Code</button>
         </div>
 
         <div class="card">
             <div id="qrcode"></div>
             <button id="downloadButton" class="button" style="display:none;">Download QR Code</button>
+            <p id="statusMessage" class="visually-hidden" role="status"></p>
         </div>
 
-    </div>
+        <button id="scrollBtn" type="button" aria-label="Back to top" onclick="scrollToTop()">
+            <i class="fas fa-arrow-up" aria-hidden="true"></i>
+        </button>
+    </main>
     <script src="script.js"></script>
     <script>
         // Interactive Background
         const canvas = document.getElementById('bgCanvas');
-        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const themeToggle = document.getElementById('themeToggle');
         const html = document.documentElement;
 
@@ -85,6 +82,7 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', newTheme);
             themeToggle.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+            themeToggle.setAttribute('aria-label', `Switch to ${currentTheme} theme`);
             // Change the logo based on theme
             const logo = document.getElementById('logo');
             logo.src = newTheme === 'dark' ? 'logo-dark.png' : 'logo-light.png';
@@ -101,42 +99,59 @@
         }
 
         themeToggle.addEventListener('click', toggleTheme);
-        // Set canvas size
-        function resizeCanvas() {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+        // The background is decorative, so a WebGL failure must not stop the app.
+        function startBackground() {
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            // Set canvas size
+            function resizeCanvas() {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // Create particles
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 1000;
+            const positions = new Float32Array(particlesCount * 3);
+
+            for (let i = 0; i < particlesCount * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 10;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.02,
+                color: 0x6366f1
+            });
+            const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+
+            camera.position.z = 5;
+
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                if (!reduceMotion) {
+                    particles.rotation.x += 0.0005;
+                    particles.rotation.y += 0.0005;
+                }
+                renderer.render(scene, camera);
+            }
+            animate();
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
-        // Create particles
-        const particlesGeometry = new THREE.BufferGeometry();
-        const particlesCount = 1000;
-        const positions = new Float32Array(particlesCount * 3);
-
-        for (let i = 0; i < particlesCount * 3; i++) {
-            positions[i] = (Math.random() - 0.5) * 10;
+        try {
+            startBackground();
+        } catch (error) {
+            canvas.style.display = 'none';
         }
-
-        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const particlesMaterial = new THREE.PointsMaterial({
-            size: 0.02,
-            color: 0x6366f1
-        });
-        const particles = new THREE.Points(particlesGeometry, particlesMaterial);
-        scene.add(particles);
-
-        camera.position.z = 5;
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            particles.rotation.x += 0.0005;
-            particles.rotation.y += 0.0005;
-            renderer.render(scene, camera);
-        }
-        animate();
 
         // File handling and QR generation
         const WEB_URL_PREFIX = "https://amanraox.github.io/share-bits-wirelessly/dl.html";
@@ -149,16 +164,25 @@
                 reader.onload = (e) => onFileLoaded(file.name, e.target.result);
                 reader.readAsDataURL(file);
             } else {
-                alert("Please select a file first.");
+                showError("Please select a file first.");
             }
         });
 
+        function showError(message) {
+            document.getElementById("dialogText").innerText = message;
+            document.getElementById("fileSizeDialog").showModal();
+        }
+
         function onFileLoaded(filename, dataUrl) {
             if (dataUrl.length + filename.length > 2000) {
-                    const dialog = document.getElementById("fileSizeDialog");
-                    document.getElementById("dialogText").innerText = `File ${filename} is too large for the QR code!`;
-                    dialog.showModal(); // Opens the dialog
-                }
+                document.getElementById('qrcode').innerHTML = '';
+                document.getElementById('qrcode').removeAttribute('role');
+                document.getElementById('qrcode').removeAttribute('aria-label');
+                document.getElementById('downloadButton').style.display = 'none';
+                document.getElementById('statusMessage').textContent = '';
+                showError(`File ${filename} is too large for the QR code!`);
+                return;
+            }
 
             const b64 = encodeURIComponent(dataUrl.split(',')[1]);
             const url = `${WEB_URL_PREFIX}?f=${filename}#${b64}`;
@@ -173,11 +197,19 @@
                 colorLight: isDarkTheme ? "#000000" : "#ffffff",
             });
 
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.removeAttribute('title');
+            qrContainer.querySelectorAll('img').forEach(image => image.setAttribute('alt', ''));
+            qrContainer.setAttribute('role', 'img');
+            qrContainer.setAttribute('aria-label', `QR code for ${filename}`);
+            document.getElementById('statusMessage').textContent =
+                `QR code generated for ${filename}. Download button is available.`;
+
             const downloadButton = document.getElementById('downloadButton');
             downloadButton.style.display = 'inline-block';
 
             // Download functionality
-            downloadButton.addEventListener('click', function () {
+            downloadButton.onclick = function () {
             const qrCanvas = document.querySelector('#qrcode canvas'); // Getting the canvas element
             if (qrCanvas) {
                 const link = document.createElement('a');
@@ -185,9 +217,9 @@
                 link.download = `${filename}-qrcode.png`;
                 link.click();
             } else {
-                alert("QR Code is not generated yet.");
+                showError("QR Code is not generated yet.");
             }
-        });
+        };
         }
 
         // Drag and drop handling
@@ -251,10 +283,12 @@
             }
         };
         function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const motion = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+            window.scrollTo({ top: 0, behavior: motion });
         }
     </script>
-    <dialog id="fileSizeDialog">
+    <dialog id="fileSizeDialog" aria-labelledby="dialogTitle" aria-describedby="dialogText">
+        <h2 id="dialogTitle">Cannot create QR code</h2>
         <p id="dialogText"></p>
         <button id="closeDialogBtn" onclick="document.getElementById('fileSizeDialog').close()">OK</button>
     </dialog>
